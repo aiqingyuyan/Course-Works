@@ -50,12 +50,12 @@ ImgChecker::silideMaskOverImg() {
                                result ? col += _maskWidth : ++col) {
             // if a match is found
             result = isMatch(row, col);
-            
+
             if (result) {
                 ++numOfMatches;
-                std::cout << "sub-image matched at: " 
+                std::cout << "sub-image matched at: "
                           << row << ", " << col <<"\n";
-                drawBox(row, col, _maskWidth, _maskHeight);
+                // drawBox(row, col, _maskWidth, _maskHeight);
             }
         }
     }
@@ -73,7 +73,7 @@ ImgChecker::isMatch(int row, int col) {
 imgBuff
 ImgChecker::computeAverageBackground(int row, int col) {
     int maskIndex, searchImgIndex, blackPixelCount = 0;
-    imgBuff channelsValue(4, 0);
+    std::vector<unsigned int> channelsValue(4, 0);
     
     for (int i = 0; i < _maskHeight; ++i) {          // row
         for (int j = 0; j < _maskWidth; ++j) {       // col
@@ -90,15 +90,16 @@ ImgChecker::computeAverageBackground(int row, int col) {
     }
     // std::cout << blackPixelCount << "\n";
     
-    std::cout << "Channels Value: " << (int)channelsValue[0] << " "
-              << (int)channelsValue[1] << " " << (int)channelsValue[2] << "\n";
+    imgBuff averageBackground(4, 0);
+    averageBackground[0] = channelsValue[0] / blackPixelCount;
+    averageBackground[1] = channelsValue[1] / blackPixelCount;
+    averageBackground[2] = channelsValue[2] / blackPixelCount;
     
-    for_each(channelsValue.begin(), channelsValue.end(),
-             [&blackPixelCount](channel& value) {
-                 value /= blackPixelCount;
-             });
+    std::cout << "Channels Value: " << (int)averageBackground[0] << " "
+              << (int)averageBackground[1] << " " 
+              << (int)averageBackground[2] << "\n";
              
-    return channelsValue;
+    return averageBackground;
 }
 
 bool
@@ -114,10 +115,14 @@ ImgChecker::verifyWithMask(const imgBuff& averageBackground,
             if (isBlackPixel(maskIndex)) {
                 if(isSameShade(searchImgIndex, averageBackground)) {
                     ++matchPixels;
+                } else {
+                    --matchPixels;
                 }
             } else {
                 if (!isSameShade(searchImgIndex, averageBackground)) {
                     ++matchPixels;
+                } else {
+                    --matchPixels;
                 }
             }
         }
@@ -125,6 +130,8 @@ ImgChecker::verifyWithMask(const imgBuff& averageBackground,
     
     std::cout << "Match pixels: " << matchPixels << "\n";
     std::cout << "Total pixels: " << (_maskHeight * _maskWidth) << "\n";
+    
+    // misMatchPixels = _maskHeight * _maskWidth - matchPixels;
 
     float matchPercentage = (float)(matchPixels * 100) /
                             (_maskHeight * _maskWidth);
@@ -148,8 +155,6 @@ ImgChecker::drawBox(int row, int col, int width, int height) {
 
 bool
 ImgChecker::isBlackPixel(int pixelIndex) {
-   // std::cout << (int)_maskBuff[pixelIndex] << " " << (int)_maskBuff[pixelIndex+1] 
-   //           << " " << (int)_maskBuff[pixelIndex+2] << "\n";
     return (_maskBuff[pixelIndex] == 0) &&      // Red channel
            (_maskBuff[pixelIndex + 1] == 0) &&  // Green channel
            (_maskBuff[pixelIndex + 2] == 0);    // Blue channel
