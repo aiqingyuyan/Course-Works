@@ -6,8 +6,7 @@ ImgChecker::ImgChecker(const string& search, const string& mask,
                        const string& out, int percentageMath,
                        int pixelTolerance) : _percentageMath(percentageMath),
                                              _pixelTolerance(pixelTolerance),
-                                             _useMask(true),
-                                             outImgName(out) {
+                                             _useMask(true) {
     init(search, mask, out);
 }
 
@@ -32,7 +31,8 @@ ImgChecker::init(const string& searchImg, const string& mask,
         std::cout << "cannot load mask image\n";
     }
     
-    _outImg           = PNG(_searchImg); 
+    outImgName        = out;
+    _outImg           = PNG(_searchImg);
     _searchImgWidth   = _searchImg.getWidth();
     _searchImgHeight  = _searchImg.getHeight();
     _maskWidth        = _mask.getWidth();
