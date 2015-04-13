@@ -22,7 +22,7 @@ typedef struct _Rect {
   bool isOverlapWith(int x3, int y3, int x4, int y4) const {
       // p1: _x1, _y1, p2: _x2, _y2
       // p3: x3, y3, p4: x4, y4
-      return !(_y2 > y3 || _y1 < y4 || _x2 < x3 || _x1 > x4);
+      return !(_y2 < y3 || _y1 > y4 || _x2 < x3 || _x1 > x4);
   }
   
 } Rect;

@@ -44,7 +44,6 @@ ImgChecker::init(const string& searchImg, const string& mask,
 void
 ImgChecker::silideMaskOverImg() {
     int numOfMatches = 0;
-    // bool result;
     // Used to remember all of the indntified region
     std::vector<Rect> identifiedRegions(0);
     for (int row = 0; (row + _maskHeight) <= _searchImgHeight; ++row) {
