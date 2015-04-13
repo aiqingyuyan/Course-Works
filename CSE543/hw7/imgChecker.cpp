@@ -6,7 +6,8 @@ ImgChecker::ImgChecker(const string& search, const string& mask,
                        const string& out, int percentageMath,
                        int pixelTolerance) : _percentageMath(percentageMath),
                                              _pixelTolerance(pixelTolerance),
-                                             _useMask(true) {
+                                             _useMask(true),
+                                             outImgName(out) {
     init(search, mask, out);
 }
 
@@ -66,7 +67,7 @@ ImgChecker::silideMaskOverImg() {
         }
     }
     std::cout << "Number of matches found: " << numOfMatches << "\n";
-    _outImg.write("Result.png");
+    _outImg.write(outImgName);
 }
 
 bool

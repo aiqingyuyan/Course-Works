@@ -62,6 +62,8 @@ protected:
     
     imgBuff _searchImgBuff, _maskBuff;
     
+    string outImgName;
+    
 private:
     //
     bool isRegionOverlapWith(int x, int y,
