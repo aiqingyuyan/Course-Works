@@ -8,6 +8,25 @@ using namespace std;
 using channel = unsigned char;
 using imgBuff = std::vector<channel>;
 
+typedef struct _Rect {
+  int _x1, _y1, _x2, _y2;
+  _Rect() : _x1(0), _y1(0), _x2(0), _y2(0) { }
+  _Rect(int x1, int y1, int x2, int y2) : 
+            _x1(x1), _y1(y1), _x2(x2), _y2(y2) { }
+            
+  // bool isOverlapWith(const Rect& rect) const {
+  //     
+  // }
+            
+  // return true if is overlap with
+  bool isOverlapWith(int x3, int y3, int x4, int y4) const {
+      // p1: _x1, _y1, p2: _x2, _y2
+      // p3: x3, y3, p4: x4, y4
+      return !(_y2 > y3 || _y1 < y4 || _x2 < x3 || _x1 > x4);
+  }
+  
+} Rect;
+
 class ImgChecker {
 public:
     // Constructors
@@ -44,14 +63,18 @@ protected:
     imgBuff _searchImgBuff, _maskBuff;
     
 private:
+    //
+    bool isRegionOverlapWith(int x, int y,
+                             const std::vector<Rect>& Regions) const;
+    
     // 
-    int getPixelInFlatBuffer(int row, int col, int imgWidth);
+    inline int getPixelInFlatBuffer(int row, int col, int imgWidth);
     
     //
-    bool isBlackPixel(int pixelIndex);
+    inline bool isBlackPixel(int pixelIndex);
     
     //
-    bool isSameShade(int pixelIndex, const imgBuff& rgba);
+    inline bool isSameShade(int pixelIndex, const imgBuff& rgba);
     
     PNG _searchImg, _mask, _outImg;
     int _percentageMath, _pixelTolerance;

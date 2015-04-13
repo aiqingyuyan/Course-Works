@@ -44,22 +44,30 @@ ImgChecker::init(const string& searchImg, const string& mask,
 void
 ImgChecker::silideMaskOverImg() {
     int numOfMatches = 0;
-    bool result;
+    // bool result;
+    // Used to remember all of the indntified region
+    std::vector<Rect> identifiedRegions(0);
     for (int row = 0; (row + _maskHeight) <= _searchImgHeight; ++row) {
-        for (int col = 0; (col + _maskWidth) <= _searchImgWidth;
-                               result ? col += _maskWidth : ++col) {
-            // if a match is found
-            result = isMatch(row, col);
-
-            if (result) {
-                ++numOfMatches;
-                std::cout << "sub-image matched at: "
-                          << row << ", " << col <<"\n";
-                // drawBox(row, col, _maskWidth, _maskHeight);
+        for (int col = 0; (col + _maskWidth) <= _searchImgWidth; ++col) {
+            // if this region of pixeles doesn't overlap
+            // with other identified regions
+            if (!isRegionOverlapWith(col, row, identifiedRegions)) {
+                // if a match is found
+                if (isMatch(row, col)) {
+                    ++numOfMatches;
+                    // mark identified regions
+                    identifiedRegions.push_back(Rect(col, row,
+                                      col + _maskWidth - 1,
+                                      row + _maskHeight - 1));
+                    std::cout << "sub-image matched at: "
+                              << row << ", " << col <<"\n";
+                    drawBox(row, col, _maskWidth, _maskHeight);
+                }
             }
         }
     }
     std::cout << "Number of matches found: " << numOfMatches << "\n";
+    _outImg.write("Result.png");
 }
 
 bool
@@ -95,9 +103,9 @@ ImgChecker::computeAverageBackground(int row, int col) {
     averageBackground[1] = channelsValue[1] / blackPixelCount;
     averageBackground[2] = channelsValue[2] / blackPixelCount;
     
-    std::cout << "Channels Value: " << (int)averageBackground[0] << " "
-              << (int)averageBackground[1] << " " 
-              << (int)averageBackground[2] << "\n";
+    // std::cout << "Channels Value: " << (int)averageBackground[0] << " "
+    //           << (int)averageBackground[1] << " " 
+    //           << (int)averageBackground[2] << "\n";
              
     return averageBackground;
 }
@@ -105,7 +113,7 @@ ImgChecker::computeAverageBackground(int row, int col) {
 bool
 ImgChecker::verifyWithMask(const imgBuff& averageBackground,
                            int row, int col) {
-    int maskIndex, searchImgIndex, misMatchPixels, matchPixels = 0;
+    int maskIndex, searchImgIndex, matchPixels = 0;
     
     for (int i = 0; i < _maskHeight; ++i) {
         for (int j = 0; j < _maskWidth; ++j) {
@@ -127,11 +135,6 @@ ImgChecker::verifyWithMask(const imgBuff& averageBackground,
             }
         }
     }
-    
-    std::cout << "Match pixels: " << matchPixels << "\n";
-    std::cout << "Total pixels: " << (_maskHeight * _maskWidth) << "\n";
-    
-    // misMatchPixels = _maskHeight * _maskWidth - matchPixels;
 
     float matchPercentage = (float)(matchPixels * 100) /
                             (_maskHeight * _maskWidth);
@@ -142,15 +145,27 @@ ImgChecker::verifyWithMask(const imgBuff& averageBackground,
 void
 ImgChecker::drawBox(int row, int col, int width, int height) {
    // Draw horizontal lines
-    for(int i = 0; (i < width); i++) {
+    for(int i = 0; (i < width - 1); ++i) {
         _outImg.setRed(row, col + i);
         _outImg.setRed(row + height, col + i);
     }
     // Draw vertical lines
-    for(int i = 0; (i < height); i++) {
+    for(int i = 0; (i < height - 1); ++i) {
         _outImg.setRed(row + i, col);
         _outImg.setRed(row + i, col + width);
     }
+}
+
+bool
+ImgChecker::isRegionOverlapWith(int x, int y,
+                     const std::vector<Rect>& Regions) const {
+    for (auto& rect : Regions) {
+        if (rect.isOverlapWith(x, y,
+                 x + _maskWidth - 1,
+                 y + _maskHeight - 1))
+           return true;
+    }
+    return false;
 }
 
 bool
@@ -162,7 +177,7 @@ ImgChecker::isBlackPixel(int pixelIndex) {
 
 bool
 ImgChecker::isSameShade(int pixelIndex, const imgBuff& rgba) {
-    return std::abs(_searchImgBuff[pixelIndex] - rgba[0]) 
+    return std::abs(_searchImgBuff[pixelIndex] - rgba[0])
                                         <= _pixelTolerance &&
            std::abs(_searchImgBuff[pixelIndex + 1] - rgba[1])
                                         <= _pixelTolerance &&
@@ -172,5 +187,5 @@ ImgChecker::isSameShade(int pixelIndex, const imgBuff& rgba) {
 
 int
 ImgChecker::getPixelInFlatBuffer(int row, int col, int imgWidth) {
-    return row * imgWidth + col;
+    return 4 * row * imgWidth + 4 * col;
 }
