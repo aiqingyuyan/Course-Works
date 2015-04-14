@@ -1,7 +1,13 @@
+/**
+ * Copyright [2015] <Yan Yu>
+ */
+
 #include "imgChecker.h"
+#include <omp.h>
 #include <algorithm>
 #include <iostream>
-#include <omp.h>
+#include <string>
+#include <vector>
 
 ImgChecker::ImgChecker(const string& search, const string& mask,
                        const string& out, int percentageMath,
@@ -31,14 +37,14 @@ ImgChecker::init(const string& searchImg, const string& mask,
     } catch(...) {
         std::cout << "cannot load mask image\n";
     }
-    
+
     outImgName        = out;
     _outImg           = PNG(_searchImg);
     _searchImgWidth   = _searchImg.getWidth();
     _searchImgHeight  = _searchImg.getHeight();
     _maskWidth        = _mask.getWidth();
     _maskHeight       = _mask.getHeight();
-    
+
     _searchImgBuff    = _searchImg.getBuffer();
     _maskBuff         = _mask.getBuffer();
 }
@@ -48,11 +54,13 @@ ImgChecker::silideMaskOverImg() {
     int numOfMatches = 0;
     // Used to remember all of the indntified region
     std::vector<Rect> identifiedRegions(0);
-    #pragma omp parallel shared(numOfMatches,identifiedRegions)
-    {    
-        #pragma omp for // schedule(static,_searchImgHeight/omp_get_num_threads())
+    #pragma omp parallel shared(numOfMatches, identifiedRegions)
+    {
+        // schedule(static,_searchImgHeight/omp_get_num_threads())
+        #pragma omp for
             for (int row = 0; (row) <= _searchImgHeight - _maskHeight; ++row) {
-                for (int col = 0; (col) <= _searchImgWidth - _maskWidth; ++col) {
+                for (int col = 0; (col) <= _searchImgWidth - _maskWidth;
+                                                                     ++col) {
                     // if this region of pixeles doesn't overlap
                     // with other identified regions
                     if (!isRegionOverlapWith(col, row, identifiedRegions)) {
@@ -60,7 +68,7 @@ ImgChecker::silideMaskOverImg() {
                         if (isMatch(row, col)) {
                             std::cout << "sub-image matched at: "
                                       << row << ", " << col <<"\n";
-                            #pragma omp critical (findMatch)
+                            #pragma omp critical(findMatch)
                             {
                                 ++numOfMatches;
                                 // mark identified regions
@@ -90,13 +98,13 @@ imgBuff
 ImgChecker::computeAverageBackground(int row, int col) {
     int maskIndex, searchImgIndex, blackPixelCount = 0;
     std::vector<unsigned int> channelsValue(4, 0);
-    
+
     for (int i = 0; i < _maskHeight; ++i) {          // row
         for (int j = 0; j < _maskWidth; ++j) {       // col
             maskIndex = getPixelInFlatBuffer(i, j, _maskWidth);
             searchImgIndex = getPixelInFlatBuffer(row + i, col + j,
                                                   _searchImgWidth);
-            if(isBlackPixel(maskIndex)) {
+            if (isBlackPixel(maskIndex)) {
                 channelsValue[0] += _searchImgBuff[searchImgIndex];
                 channelsValue[1] += _searchImgBuff[searchImgIndex + 1];
                 channelsValue[2] += _searchImgBuff[searchImgIndex + 2];
@@ -105,16 +113,16 @@ ImgChecker::computeAverageBackground(int row, int col) {
         }
     }
     // std::cout << blackPixelCount << "\n";
-    
+
     imgBuff averageBackground(4, 0);
     averageBackground[0] = channelsValue[0] / blackPixelCount;
     averageBackground[1] = channelsValue[1] / blackPixelCount;
     averageBackground[2] = channelsValue[2] / blackPixelCount;
-    
+
     // std::cout << "Channels Value: " << (int)averageBackground[0] << " "
-    //           << (int)averageBackground[1] << " " 
+    //           << (int)averageBackground[1] << " "
     //           << (int)averageBackground[2] << "\n";
-             
+
     return averageBackground;
 }
 
@@ -122,14 +130,14 @@ bool
 ImgChecker::verifyWithMask(const imgBuff& averageBackground,
                            int row, int col) {
     int maskIndex, searchImgIndex, matchPixels = 0;
-    
+
     for (int i = 0; i < _maskHeight; ++i) {
         for (int j = 0; j < _maskWidth; ++j) {
             maskIndex = getPixelInFlatBuffer(i, j, _maskWidth);
             searchImgIndex = getPixelInFlatBuffer(row + i, col + j,
                                                   _searchImgWidth);
             if (isBlackPixel(maskIndex)) {
-                if(isSameShade(searchImgIndex, averageBackground)) {
+                if (isSameShade(searchImgIndex, averageBackground)) {
                     ++matchPixels;
                 } else {
                     --matchPixels;
@@ -144,21 +152,21 @@ ImgChecker::verifyWithMask(const imgBuff& averageBackground,
         }
     }
 
-    float matchPercentage = (float)(matchPixels * 100) /
+    float matchPercentage = static_cast<float>((matchPixels * 100)) /
                             (_maskHeight * _maskWidth);
-    
+
     return  matchPercentage > _percentageMath;
 }
 
 void
 ImgChecker::drawBox(int row, int col, int width, int height) {
-   // Draw horizontal lines
-    for(int i = 0; (i < width - 1); ++i) {
+    // Draw horizontal lines
+    for (int i = 0; (i < width - 1); ++i) {
         _outImg.setRed(row, col + i);
         _outImg.setRed(row + height, col + i);
     }
     // Draw vertical lines
-    for(int i = 0; (i < height - 1); ++i) {
+    for (int i = 0; (i < height - 1); ++i) {
         _outImg.setRed(row + i, col);
         _outImg.setRed(row + i, col + width);
     }

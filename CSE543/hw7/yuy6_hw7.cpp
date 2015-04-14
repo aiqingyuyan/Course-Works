@@ -1,5 +1,9 @@
-#include "imgChecker.h"
+/**
+ * Copyright [2015] <Yan Yu>
+ */
 #include <iostream>
+#include <string>
+#include "imgChecker.h"
 
 void run(char** const argv, int argc) {
     std::string searchImg(argv[1]), mask(argv[2]), outImg(argv[3]);
@@ -30,9 +34,9 @@ int main(int argc, char* argv[]) {
                   << "<pixel color tolerance> - optional \n";
         return 1;
     }
-    
+
     // process arguments and run
     run(argv, argc);
-    
+
     return 0;
 }
