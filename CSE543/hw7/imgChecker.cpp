@@ -49,9 +49,8 @@ ImgChecker::silideMaskOverImg() {
     // Used to remember all of the indntified region
     std::vector<Rect> identifiedRegions(0);
     #pragma omp parallel shared(numOfMatches,identifiedRegions)
-    {
-        
-        #pragma omp for schedule(dynamic,_searchImgHeight/omp_get_num_threads())
+    {    
+        #pragma omp for // schedule(static,_searchImgHeight/omp_get_num_threads())
             for (int row = 0; (row) <= _searchImgHeight - _maskHeight; ++row) {
                 for (int col = 0; (col) <= _searchImgWidth - _maskWidth; ++col) {
                     // if this region of pixeles doesn't overlap
@@ -59,17 +58,17 @@ ImgChecker::silideMaskOverImg() {
                     if (!isRegionOverlapWith(col, row, identifiedRegions)) {
                         // if a match is found
                         if (isMatch(row, col)) {
+                            std::cout << "sub-image matched at: "
+                                      << row << ", " << col <<"\n";
                             #pragma omp critical (findMatch)
                             {
-                                 ++numOfMatches;
+                                ++numOfMatches;
                                 // mark identified regions
                                 identifiedRegions.push_back(Rect(col, row,
                                                   col + _maskWidth - 1,
                                                   row + _maskHeight - 1));
-                                std::cout << "sub-image matched at: "
-                                          << row << ", " << col <<"\n";
                                 drawBox(row, col, _maskWidth, _maskHeight);
-                           }
+                            }
                         }
                     }
                 }
