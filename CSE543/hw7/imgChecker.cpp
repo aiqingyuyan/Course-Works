@@ -1,6 +1,7 @@
 #include "imgChecker.h"
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
 
 ImgChecker::ImgChecker(const string& search, const string& mask,
                        const string& out, int percentageMath,
@@ -47,24 +48,32 @@ ImgChecker::silideMaskOverImg() {
     int numOfMatches = 0;
     // Used to remember all of the indntified region
     std::vector<Rect> identifiedRegions(0);
-    for (int row = 0; (row + _maskHeight) <= _searchImgHeight; ++row) {
-        for (int col = 0; (col + _maskWidth) <= _searchImgWidth; ++col) {
-            // if this region of pixeles doesn't overlap
-            // with other identified regions
-            if (!isRegionOverlapWith(col, row, identifiedRegions)) {
-                // if a match is found
-                if (isMatch(row, col)) {
-                    ++numOfMatches;
-                    // mark identified regions
-                    identifiedRegions.push_back(Rect(col, row,
-                                      col + _maskWidth - 1,
-                                      row + _maskHeight - 1));
-                    std::cout << "sub-image matched at: "
-                              << row << ", " << col <<"\n";
-                    drawBox(row, col, _maskWidth, _maskHeight);
+    #pragma omp parallel shared(numOfMatches,identifiedRegions)
+    {
+        
+        #pragma omp for schedule(dynamic,_searchImgHeight/omp_get_num_threads())
+            for (int row = 0; (row) <= _searchImgHeight - _maskHeight; ++row) {
+                for (int col = 0; (col) <= _searchImgWidth - _maskWidth; ++col) {
+                    // if this region of pixeles doesn't overlap
+                    // with other identified regions
+                    if (!isRegionOverlapWith(col, row, identifiedRegions)) {
+                        // if a match is found
+                        if (isMatch(row, col)) {
+                            #pragma omp critical (findMatch)
+                            {
+                                 ++numOfMatches;
+                                // mark identified regions
+                                identifiedRegions.push_back(Rect(col, row,
+                                                  col + _maskWidth - 1,
+                                                  row + _maskHeight - 1));
+                                std::cout << "sub-image matched at: "
+                                          << row << ", " << col <<"\n";
+                                drawBox(row, col, _maskWidth, _maskHeight);
+                           }
+                        }
+                    }
                 }
             }
-        }
     }
     std::cout << "Number of matches found: " << numOfMatches << "\n";
     _outImg.write(outImgName);
