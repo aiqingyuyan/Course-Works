@@ -49,7 +49,7 @@ std::vector<char> processHTMLFile(const std::string& url, long& numOfBytes) {
                    });
     // convert vector of string to a flat buffer
     numOfBytes = words.size() * MAX_LENGTH;
-    std::cout << "start converting: " << numOfBytes << " chars\n";
+    // std::cout << "start converting: " << numOfBytes << " chars\n";
     std::vector<char> flatCharBuff(numOfBytes);
     for (size_t i = 0; i < words.size(); ++i) {
         if (words[i].size() == MAX_LENGTH) {
@@ -68,7 +68,7 @@ std::vector<char> processHTMLFile(const std::string& url, long& numOfBytes) {
             }
         }
     }
-    std::cout << "end converting\n";
+    // std::cout << "end converting\n";
 
     return flatCharBuff;
 }
@@ -101,12 +101,19 @@ std::vector<int> processWords(const int rank, const int numProcs,
                                                 terms[i],
                                                 words[j].size(),
                                                 terms[i].size());
+            std::cout << "word: " << words[j] << ", term: " << terms[i] << "\n";
+            std::cout << "distance= " << distance << "\n";
             if (distance <= MAX_DISTANCE) {
                 ++distanceCount[distance];
             }
 
         }
     }
+
+    //for (size_t i = 0; i < distanceCount.size(); ++i) {
+    //    std::cout << "Words with distance=" << i << ": "
+    //              << distanceCount[i] << "\n";
+    //}
     return distanceCount;
 }
 
@@ -125,15 +132,15 @@ convertBuffersToStrings(const std::vector<char>& buffers,
     } else {
         endIdx   = numOfBytes;
     }
-    std::cout << "In rank " << myRank << " start converting buffers\n";
+    // std::cout << "In rank " << myRank << " start converting buffers\n";
     // convert flat buffer to vector of strings
     while (startIdx < endIdx) {
         std::string str(buffers.begin() + startIdx,
-                        buffers.begin() + MAX_LENGTH);
+                        buffers.begin() + startIdx + MAX_LENGTH);
         words.push_back(str);
         startIdx += MAX_LENGTH;
     }
-    std::cout << "In rank " << myRank << " finish converting buffers\n";
+    // std::cout << "In rank " << myRank << " finish converting buffers\n";
     return words;
 }
 
@@ -145,13 +152,17 @@ void doWorkerTask(const int myRank, const int numProcs,
         MPI_Bcast(&numOfBytes, 1, MPI_LONG, 0, MPI_COMM_WORLD);
         if (numOfBytes != -1) {
             std::vector<char> flatBuffer(numOfBytes);
-            std::cout << "In rank " << myRank << " start receiving buffers\n";
+            // std::cout << "In rank " << myRank << " start receiving buffers\n";
             MPI_Bcast(&flatBuffer[0], numOfBytes, MPI_CHAR, 0,
                       MPI_COMM_WORLD);
             // each process handle part of the flat buffers
             // first convert that part of buffers to vector of strings
+            std::cout << "In rank " << myRank << "\n";
             std::vector<std::string> words = convertBuffersToStrings(flatBuffer,
                                                   myRank, numProcs, numOfBytes);
+            //for (size_t i = 0; i < terms.size(); ++i) {
+            //    std::cout << "terms[" << i << "]= " << terms[i] << "\n";
+            //}
             std::vector<int> totalDistanceCount(MAX_DISTANCE + 1, 0);
             std::vector<int> distanceCount = processWords(myRank, numProcs,
                                                   words, terms);
@@ -170,20 +181,24 @@ void doManagerTask(const int myRank, const int numProcs,
         std::vector<char> flatBuffer = processHTMLFile(url, numOfBytes);
         std::cout << "URL: " << url << "\n";
         MPI_Bcast(&numOfBytes, 1, MPI_LONG, 0, MPI_COMM_WORLD);
-        std::cout << "end sending numOfBytes: " << numOfBytes << "\n";
+        // std::cout << "end sending numOfBytes: " << numOfBytes << "\n";
         MPI_Bcast(&flatBuffer[0], flatBuffer.size(), MPI_CHAR, 0,
                   MPI_COMM_WORLD);
-        std::cout << "end sending flat buffer\n";
+        // std::cout << "end sending flat buffer\n";
         std::vector<std::string> words = convertBuffersToStrings(flatBuffer,
                                               myRank, numProcs, numOfBytes);
         std::vector<int> totalDistanceCount(MAX_DISTANCE + 1, 0);
         std::vector<int> distanceCount = processWords(myRank, numProcs,
                                               words, terms);
-        std::cout << "start reducing\n";
+        // std::cout << "start reducing\n";
         MPI_Reduce(&distanceCount[0], &totalDistanceCount[0],
                    totalDistanceCount.size(), MPI_INT, MPI_SUM, MANAGER,
                    MPI_COMM_WORLD);
-        std::cout << "finish reducing\n";
+        // std::cout << "finish reducing\n";
+        //for (size_t i = 0; i < totalDistanceCount.size(); ++i) {
+        //    std::cout << "Words with distance=" << i << ": "
+        //              << totalDistanceCount[i] << "\n";
+        //}
     }
     numOfBytes = -1;
     MPI_Bcast(&numOfBytes, 1, MPI_LONG, 0, MPI_COMM_WORLD);
