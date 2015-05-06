@@ -1,11 +1,16 @@
-#include "HTMLDownloader.h"
+/**
+ * Copyright <Yan Yu>, Miami U. 2015
+ */
+
 #include <mpi.h>
 #include <string>
-#include <cstring>
 #include <iostream>
 #include <algorithm>
 #include <iterator>
 #include <map>
+#include <vector>
+#include <cstring>
+#include "HTMLDownloader.h"
 
 const int MANAGER            = 0;
 const int MAX_LENGTH         = 15;
@@ -16,7 +21,7 @@ void preProcess(int argc, char** const argv,
                 std::vector<std::string>& urls,
                 std::vector<std::string>& terms) {
     if (argc < 3) {
-        return ;
+        return;
     }
 
     for (int i = 1; i < argc; ++i) {
@@ -140,7 +145,6 @@ convertBuffersToStrings(const std::vector<char>& buffers,
 
 void doWorkerTask(const int myRank, const int numProcs,
                   const std::vector<std::string>& terms) {
-    //std::vector<std::string> terms = preProcess(argc, argv);
     long numOfBytes = 0;
     do {
         MPI_Bcast(&numOfBytes, 1, MPI_LONG, 0, MPI_COMM_WORLD);
@@ -159,7 +163,7 @@ void doWorkerTask(const int myRank, const int numProcs,
                        totalDistanceCount.size(), MPI_INT, MPI_SUM, MANAGER,
                        MPI_COMM_WORLD);
         }
-    } while(numOfBytes != -1);
+    } while (numOfBytes != -1);
 }
 
 void doManagerTask(const int myRank, const int numProcs,

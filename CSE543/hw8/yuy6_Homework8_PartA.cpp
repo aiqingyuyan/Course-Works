@@ -1,8 +1,14 @@
+/**
+ * Copyright <Yan Yu>, Miami U. 2015
+ */
+
+#include <mpi.h>
 #include <iostream>
 #include <fstream>
 #include <iterator>
 #include <algorithm>
-#include <mpi.h>
+#include <string>
+#include <vector>
 
 const int NUMBER_TAG  = 1;
 const int FACTORS_TAG = 2;
@@ -24,8 +30,8 @@ const int MANAGER_RANK = 0;
 int getFactorCount(const long long n) {
     long long i = 0;
     int factorCount = 0;
-    
-    for(i = 1; (i <= n); i++) {
+
+    for (i = 1; (i <= n); i++) {
         if (!(n % i)) {
             factorCount++;
         }
@@ -45,7 +51,7 @@ void doWorkerTasks() {
             MPI_Send(&factors, 1, MPI_INT, MANAGER_RANK, FACTORS_TAG,
                      MPI_COMM_WORLD);
         }
-    } while(number != -1);
+    } while (number != -1);
 }
 
 void doManagerTasks(const std::string& file, const int numberOfWorkers) {
@@ -101,11 +107,11 @@ int main(int argc, char *argv[]) {
     } else {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        switch(rank) {
+        switch (rank) {
             case 0: doManagerTasks(argv[1], numberOfProcess - 1); break;
             default: doWorkerTasks(); break;
         }
     }
-    MPI_Finalize(); 
+    MPI_Finalize();
     return 0;
 }
