@@ -22,13 +22,11 @@ typedef struct {
 } command_t;
 
 const char const * promptMsg = "Shell(pid=%d)%d>";
+const char const * forkMsg   = "  Parent says 'child process has been forked this pid=%d'\n";
+const char const * waitMsg   = "  Parent says 'wait() returned so the child with pid=%d is finished'\n";
 
 void printPrompt(int counter) {
      printf(promptMsg, getpid(), ++counter);
-}
-
-void waitForCommand() {
-
 }
 
 void parseCommand(char * cmd, command_t * cmd_t) {
@@ -72,38 +70,41 @@ int launch_commands() {
 	    parseCommand(cmd, &command);
 
 	    if (!command.argv[0]) {
+	    	printPrompt(counter);
             continue ;
 	    }
 
         if (strcmp(command.name, "exit")) {
-            // printf("command --> %s\n", command.name);
             // create a process
             pid = fork();
             if (pid == 0) {
                 // child executes the command
                 execv(command.name, command.argv);
+                fprintf(stderr, "launch: Error executing command '%s'\n", command.name);
+                return EXIT_FAILURE;
             } else if (pid < 0) {
-            	fprintf(stderr, "launch: Error executing command '%s'\n", command.name);
+            	fprintf(stderr, "launch: Error while forking '%s'\n", command.name);
             	return EXIT_FAILURE;
             }
 
+            printf(forkMsg, pid);
             // wait for command to finish
             pid = wait(&status);
             if (pid < 0) {
                 fprintf(stderr, "launch: Error while waitting for child to terminate\n");
                 return EXIT_FAILURE;
             } else {
-            	printf("launch: Child %d terminated\n", pid);
+            	printf(waitMsg, pid);
             }
 
-            freeCommand(&command); 
+            freeCommand(&command);
         } else {
         	// exit
         	printf("exiting\n");
         	// wait for command to finish
             pid = wait(&status);
             if (pid > 0) {
-            	printf("launch: Child %d terminated\n", pid);
+            	printf(waitMsg, pid);
             }
 
             freeCommand(&command);
