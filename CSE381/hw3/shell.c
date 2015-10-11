@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "shell_tests.h"
@@ -74,7 +75,22 @@ int launch_commands() {
             continue ;
 	    }
 
-        if (strcmp(command.name, "exit")) {
+        if (!strcmp(command.name, "cd")) {
+        	// change directory command
+        	if (command.argc > 2) {
+                fprintf(stderr, "Error changing directory, too many arguments\n");
+        	} else if (command.argc == 2){
+                if (chdir(command.argv[1]) < 0) {
+                    fprintf(stderr, "Error changing directory, invalid directory\n");
+                }
+        	} else {
+                if (chdir(getenv("HOME")) < 0) {
+                    fprintf(stderr, "Error changing to home directory\n");
+                }
+        	}
+
+        	freeCommand(&command);
+        } else if (strcmp(command.name, "exit")) {
             // create a process
             pid = fork();
             if (pid == 0) {
