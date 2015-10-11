@@ -9,7 +9,6 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "shell_tests.h"
-#include <sys/stat.h>
 
 /* Your stuff here */
 
@@ -115,55 +114,30 @@ int launch_commands() {
 
         	freeCommand(&command);
         } else if (strcmp(command.name, "exit")) {
-			FILE *out;
-			int isls = 0;
-			if (!strcmp(command.name, "ls")) {
-				out = freopen("tem.out", "w", stdout);
-				isls = 1;
-			}
             // create a process
             pid = fork();
             if (pid == 0) {
                 // child executes the command
 				int i = 0;
                 execvp(command.name, command.argv);
-				
                 fprintf(stderr, "launch: Error executing command '%s'\n", command.name);
                 return EXIT_FAILURE;
             } else if (pid < 0) {
             	fprintf(stderr, "launch: Error while forking '%s'\n", command.name);
             	return EXIT_FAILURE;
             }
-			if(isls) {
-				
-				fclose(stdout);
-				fclose(out);
-				freopen ("/dev/tty", "a", stdout);
-			}
+
             printf(forkMsg, pid);
-			if(isls) {
-				FILE* tempf = fopen("tem.out","r");
-				char line[100];
-				while (1) {
-        			if (fgets(line,100, tempf) == NULL) break;
-        			struct stat fileStat;
-					stat(line,&fileStat);
-					printf("%d\n",((fileStat.st_mode && S_IXUSR)||(fileStat.st_mode && S_IXGRP)||(fileStat.st_mode && S_IXOTH)));
-				}
-				fclose(tempf);
-				//unlink("tem.out");
-			}
             // wait for command to finish
             pid = waitpid(pid,&status,0);
-	    	if(status != EXIT_SUCCESS) fprintf(stderr,"shell: Process %d exited with status %d\n",pid,status);
-		
+	    if(status != EXIT_SUCCESS) fprintf(stderr,"shell: Process %d exited with status %d\n",pid,status);
+		//printf("!!!!!!%d %d\n",status,pid);
             if (pid < 0) {
                 fprintf(stderr, "launch: Error while waitting for child to terminate\n");
                 return EXIT_FAILURE;
             } else {
             	printf(waitMsg, pid);
             }
-			
 
             freeCommand(&command);
         } else {
