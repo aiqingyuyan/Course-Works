@@ -89,7 +89,9 @@ int launch_commands() {
 
             printf(forkMsg, pid);
             // wait for command to finish
-            pid = wait(&status);
+            pid = waitpid(pid,&status,1);
+			if(status != EXIT_SUCCESS) fprintf(stderr,"shell: Process %d exited with status %d\n",pid,status);
+		//printf("!!!!!!%d %d\n",status,pid);
             if (pid < 0) {
                 fprintf(stderr, "launch: Error while waitting for child to terminate\n");
                 return EXIT_FAILURE;
