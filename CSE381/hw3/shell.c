@@ -79,7 +79,7 @@ int launch_commands() {
             pid = fork();
             if (pid == 0) {
                 // child executes the command
-                execv(command.name, command.argv);
+                execvp(command.name, command.argv);
                 fprintf(stderr, "launch: Error executing command '%s'\n", command.name);
                 return EXIT_FAILURE;
             } else if (pid < 0) {
