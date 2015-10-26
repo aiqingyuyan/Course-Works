@@ -35,26 +35,26 @@ void *run_enzyme(void *data) {
 	    // 6. Within this loop: if the first character of the string has an ascii value greater than the second (s[0] > s[1]) then -
 	    //	Set workperformed=1, increment swapcount for this thread, then swap the two characters around
         if (thread_data->string[0] > thread_data->string[1]) {
+        	// printf("thead %d before swap: %c, %c\n", pthread_self(), thread_data->string[0], thread_data->string[1]);
             workperformed = 1;
             thread_data->swapcount++;
             // swap characters
-            thread_data->string[0] = thread_data->string[0] ^ thread_data->string[1];
-            thread_data->string[1] = thread_data->string[0] ^ thread_data->string[1];
-            thread_data->string[0] = thread_data->string[1] ^ thread_data->string[0];
+            thread_data->string[0] ^= thread_data->string[1];
+            thread_data->string[1] ^= thread_data->string[0];
+            thread_data->string[0] ^= thread_data->string[1];
+            // printf("thead %d after swap: %c, %c\n", pthread_self(), thread_data->string[0], thread_data->string[1]);
             //	If "use_yield" is nonzero then call pthread_yield at the end of the loop.
             if (use_yield) {
                 result = pthread_yield();
-                handle_error(result, "error code %d: pthread_yield\n");
+                if (result) {
+                    handle_error(result, "error code %d: pthread_yield\n");
+                }
             }
         }
     }
 	
 	// 7. Return a pointer to the updated structure.
-    return data;
-    // while (0) {
-    //     sched_yield();
-    // };
-	// return NULL;
+    return thread_data;
 }
 
 // Make threads to sort string.
