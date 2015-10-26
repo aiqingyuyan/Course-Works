@@ -11,7 +11,7 @@ void handle_error(int error_no, const char * const msg) {
 }
 
 // The code each enzyme executes.
-void *run_enzyme(void *data) {
+void* run_enzyme(void *data) {
 	// This function should :
 	// 1. cast the void* pointer to thread_info_t*
     thread_info_t *thread_data = (thread_info_t *)data;
@@ -100,7 +100,7 @@ int join_on_enzymes(pthread_t *threads, int n) {
 	    } else if (status == NULL) {
 	        printf("Thread %d did not return anything\n", i);
 	    } else {
-	        printf("Thread %d exited normally: ",i);// Don't change this line
+	        printf("Thread %d exited normally: ", i);// Don't change this line
 	        int threadswapcount = ((thread_info_t *)status)->swapcount;
 	        // Hint - you will need to cast something.
 	        printf("%d swaps.\n",threadswapcount); // Don't change this line
