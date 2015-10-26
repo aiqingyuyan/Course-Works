@@ -31,7 +31,7 @@ void *run_enzyme(void *data) {
         }
     }
 	// 5. Create a while loop that only exits when please_quit is nonzero
-    while (!please_quit) {
+    while (please_quit == 0) {
 	    // 6. Within this loop: if the first character of the string has an ascii value greater than the second (s[0] > s[1]) then -
 	    //	Set workperformed=1, increment swapcount for this thread, then swap the two characters around
         if (thread_data->string[0] > thread_data->string[1]) {
