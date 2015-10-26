@@ -38,17 +38,14 @@ void *run_enzyme(void *data) {
             workperformed = 1;
             thread_data->swapcount++;
             // swap characters
-            // thread_data->string[0] = thread_data->string[0] ^ thread_data->string[1];
-            // thread_data->string[1] = thread_data->string[0] ^ thread_data->string[1];
-            // thread_data->string[0] = thread_data->string[1] ^ thread_data->string[0];
-            char tmp = thread_data->string[0];
-            thread_data->string[0] = thread_data->string[1];
-            thread_data->string[1] = tmp;
-        }
-        //	If "use_yield" is nonzero then call pthread_yield at the end of the loop.
-        if (use_yield) {
-            result = pthread_yield();
-            handle_error(result, "error code %d: pthread_yield\n");
+            thread_data->string[0] = thread_data->string[0] ^ thread_data->string[1];
+            thread_data->string[1] = thread_data->string[0] ^ thread_data->string[1];
+            thread_data->string[0] = thread_data->string[1] ^ thread_data->string[0];
+            //	If "use_yield" is nonzero then call pthread_yield at the end of the loop.
+            if (use_yield) {
+                result = pthread_yield();
+                handle_error(result, "error code %d: pthread_yield\n");
+            }
         }
     }
 	
