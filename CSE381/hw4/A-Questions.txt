@@ -1,0 +1,8 @@
+1. First, using multiple processes will cause process creation overhead. Second, since, in our program, the are lots of  
+   information need to be shared between multiple threads, if we switch to multi processes, information exchange will become 
+   much more difficult than sharing information between multiple threads.
+
+2. workperformed is used to indicate that swapping is performed and in progress. 
+
+3. void *(*fp)(void *) is a function pointer declaration, fp is the pointer, and we can assign any function name to this 
+   function pointer as long as that function takes in a void * pointer as parameter and returns a void * pointer.

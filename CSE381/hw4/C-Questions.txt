@@ -1,0 +1,20 @@
+1. if we detach a thread, it means that we don't wait for it and we don't join it, it will become a deamon thread keep running in the 
+   background. 
+   
+2. using sched_yield could improve performance by giving other threads a chance to run. 
+
+3. since we cancel the thread, that thread will not execute further and will be cancel immediately, that is no swap actual happens and 
+   we don't need to add the swap count for this thread.
+
+4. a thread join itself will cause deadlock.
+
+5. sleeper thread just make itself sleep for p seconds where p is specified by programmer.
+
+6. set calcel type to PTHREAD_CANCEL_ASYNCHRONOUS so that we can cancel the specified thread immediately so that whenever we detect a 
+   'C' in the string in our program, we send a cancelation request and that thread will be cancel immediately to prevent further 
+   execuation
+   
+7. the bug is that the memory allocation should be inside the loop not outside of the loop. the reason is that, if we put the memory 
+   allocation outside the loop, then all of the threads created inside the loop will access the same chunk of memory to change the 
+   info struct string pointer variable, which should not happen, each thread should have a different chunk of memory representing the 
+   info struct of its own.
