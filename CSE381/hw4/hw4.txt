@@ -1,0 +1,206 @@
+Script started on Sun 01 Nov 2015 08:34:49 PM EST
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ cat README
+Author: Yan Yu, Mingchao Liao, Jian Wang
+
+It is not too hard to finish this assignment. We spent a little bit long time on understanding what the origin coding goes on. 
+We believe our implementation is correct. 
+We totally use about 4 hours to finish this assignment.
+In order to finish this assignment, we use Linex Man Page and Google for help.
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ cat A-Questions.txt 
+1. First, using multiple processes will cause process creation overhead. Second, since, in our program, there are lots of  
+   information need to be shared between multiple threads, if we switch to multi processes, information exchange will become 
+   much more difficult than sharing information between multiple threads.
+
+2. workperformed is used to indicate that swapping is performed and in progress. 
+
+3. void *(*fp)(void *) is a function pointer declaration, fp is the pointer, and we can assign any function name to this 
+   function pointer as long as that function takes in a void * pointer as parameter and returns a void * pointer.
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ cat C-Questions.txt 
+1. if we detach a thread, it means that we don't wait for it and we don't join it, it will become a deamon thread keep running in the 
+   background. 
+   
+2. using sched_yield could improve performance by giving other threads a chance to run. We will loss some performance if we don't use sched_yield. The swap count are not always identical. 
+
+3. since we cancel the thread, that thread will not execute further and will be cancel immediately, that is no swap actual happens and 
+   we don't need to add the swap count for this thread.
+
+4. a thread join itself will cause deadlock.
+
+5. sleeper thread just make itself sleep for p seconds where p is specified by programmer.
+
+6. set calcel type to PTHREAD_CANCEL_ASYNCHRONOUS so that we can cancel the specified thread immediately so that whenever we detect a 
+   'C' in the string in our program, we send a cancelation request and that thread will be cancel immediately to prevent further 
+   execuation
+   
+7. the bug is that the memory allocation should be inside the loop not outside of the loop. the reason is that, if we put the memory 
+   allocation outside the loop, then all of the threads created inside the loop will access the same chunk of memory to change the 
+   info struct string pointer variable, which should not happen, each thread should have a different chunk of memory representing the 
+   info struct of its own.
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ cat enzyme.c
+#include "enzyme.h"
+
+int please_quit;
+int use_yield;
+int workperformed;
+
+// The code each enzyme executes.
+void *run_enzyme(void *data) {
+	// This function should :
+	// 1. cast the void* pointer to thread_info_t*
+	thread_info_t* info = (thread_info_t*) data;
+	// 2. initialize the swapcount to zero
+	info->swapcount = 0;
+	// 3. Set the cancel type to PTHREAD_CANCEL_ASYNCHRONOUS
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL);
+	// 4. If the first letter of the string is a C then call pthread_cancel on this thread.
+	if((info->string)[0] == 'C') pthread_cancel(pthread_self());
+	// 5. Create a while loop that only exits when please_quit is nonzero
+	// 6. Within this loop: if the first character of the string has an ascii value greater than the second (s[0] >s[1]) then -
+	//	Set workperformed=1, increment swapcount for this thread, then swap the two characters around
+	//	If "use_yield" is nonzero then call pthread_yield at the end of the loop.
+	while(please_quit == 0) {
+		if((info->string)[0] > (info->string)[1]) {
+			workperformed = 1;
+			(info->swapcount)++;
+			char tem = (info->string)[0];
+			(info->string)[0] = (info->string)[1];
+			(info->string)[1] = tem;
+			if(use_yield != 0) pthread_yield();
+		}
+        }
+	// 7. Return a pointer to the updated structure.
+	return info;
+}
+
+
+// Make threads to sort string.
+// Returns the number of threads created.
+// There is a memory bug in this function.
+int make_enzyme_threads(pthread_t * enzymes, char *string, void *(*fp)(void *)) {
+	int i,rv,len;
+	thread_info_t *info;
+	len = strlen(string);
+	
+	for(i=0;i<len-1;i++) {
+	    info = (thread_info_t *)malloc(sizeof(thread_info_t));
+            info->string = string+i;
+	    rv = pthread_create(enzymes+i,NULL,fp,info);
+	    if (rv) {
+	        fprintf(stderr,"Could not create thread %d : %s\n",
+			        i,strerror(rv));
+		    exit(1);
+	    }
+	}  
+	return len-1;
+}
+
+
+
+
+// Join all threads at the end.
+// Returns the total number of swaps.
+int join_on_enzymes(pthread_t *threads, int n) {
+	int i;
+	int totalswapcount = 0;
+	int whatgoeshere=0; // just to make the code compile 
+	                    // you will need to edit the code below
+	for(i=0;i<n;i++) {
+		void *status;
+		int rv = pthread_join(threads[i],&status);
+
+        	if(rv) {
+	    		fprintf(stderr,"Can't join thread %d:%s.\n",i,strerror(rv));
+	    		continue;
+		}
+
+		if ((void*)threads[i] == PTHREAD_CANCELED) {
+	    		continue;
+		} else if (status == NULL) {
+	    		printf("Thread %d did not return anything\n",i);
+	    	} else {
+	      		printf("Thread %d exited normally: ",i);// Don't change this line
+	      		int threadswapcount = ((thread_info_t*)status)->swapcount; 
+	    		// Hint - you will need to cast something.
+	      		printf("%d swaps.\n",threadswapcount); // Don't change this line
+	      		totalswapcount += threadswapcount;// Don't change this line
+	    	}
+	}
+	return totalswapcount;
+}
+
+/* Wait until the string is in order. Note, we need the workperformed flag just in case a thread is in the middle of swapping characters
+so that the string temporarily is in order because the swap is not complete.
+*/
+void wait_till_done(char *string, int n) {
+	int i;
+	while(1) {
+	    sched_yield();
+	    workperformed=0;
+	    for(i=0;i<n;i++) 
+	        if (string[i] > string[i+1]) {
+	            workperformed=1;
+	    	}
+	    if(workperformed==0) break;
+	}
+}
+
+void * sleeper_func(void *p) {
+	sleep( (int) p); 
+	// Actually this may return before p seconds because of signals. 
+	// See man sleep for more information
+	printf("sleeper func woke up - exiting the program\n");
+	exit(1);
+}
+
+int smp2_main(int argc, char **argv) {
+	pthread_t enzymes[MAX];
+	int n,totalswap;
+	char string[MAX];
+
+	if (argc <= 1) {
+	    fprintf(stderr,"Usage: %s <word>\n",argv[0]);
+	    exit(1);
+	}
+	strncpy(string,argv[1],MAX); // Why is this necessary? Why cant we give argv[1] directly to the thread functions?
+
+	please_quit = 0;
+	use_yield =1;
+	
+	printf("Creating threads...\n");
+	n = make_enzyme_threads(enzymes,string,run_enzyme);
+	printf("Done creating %d threads.\n",n);
+	
+	pthread_t sleeperid;
+	pthread_create(&sleeperid,NULL,sleeper_func,(void*)5);
+
+	wait_till_done(string,n);
+	please_quit = 1;
+	printf("Joining threads...\n");
+	totalswap = join_on_enzymes(enzymes, n);
+	printf("Total: %d swaps\n",totalswap);
+	printf("Sorted string: %s\n",string);
+	
+	exit(0);
+}
+
+
+
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ make
+make: Nothing to be done for `all'.
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ make test
+./enzyme -test -f0 all
+Running tests...
+ 1.make                ::pass
+ 2.sort                ::pass
+ 3.pleasequit1         ::pass
+ 4.pleasequit0         ::pass
+ 5.swap1               ::pass
+ 6.swap2               ::pass
+ 7.swap3               ::pass
+ 8.run_enzyme          ::pass
+ 9.join                ::pass
+10.cancel              ::pass
+
+Test Results:10 tests,10 passed,0 failed.
+]0;liaom@ceclnx01: ~/cse381/Course-Works/CSE381/hw4liaom@ceclnx01:~/cse381/Course-Works/CSE381/hw4$ 
+Script done on Sun 01 Nov 2015 08:35:30 PM EST

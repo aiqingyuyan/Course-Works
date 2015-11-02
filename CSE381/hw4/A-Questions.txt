@@ -1,4 +1,4 @@
-1. First, using multiple processes will cause process creation overhead. Second, since, in our program, the are lots of  
+1. First, using multiple processes will cause process creation overhead. Second, since, in our program, there are lots of  
    information need to be shared between multiple threads, if we switch to multi processes, information exchange will become 
    much more difficult than sharing information between multiple threads.
 

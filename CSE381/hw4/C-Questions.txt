@@ -1,7 +1,7 @@
 1. if we detach a thread, it means that we don't wait for it and we don't join it, it will become a deamon thread keep running in the 
    background. 
    
-2. using sched_yield could improve performance by giving other threads a chance to run. 
+2. using sched_yield could improve performance by giving other threads a chance to run. We will loss some performance if we don't use sched_yield. The swap count are not always identical. 
 
 3. since we cancel the thread, that thread will not execute further and will be cancel immediately, that is no swap actual happens and 
    we don't need to add the swap count for this thread.
