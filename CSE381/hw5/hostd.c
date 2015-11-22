@@ -119,10 +119,12 @@ int main (int argc, char *argv[])
 //      i. Unload any pending processes from the input queue:
 //         While (head-of-input-queue.arrival-time <= dispatcher timer)
 //         dequeue process from input queue and enqueue on RR queue;
-        while (inputqueue->arrivaltime <= timer) {
+        while (inputqueue && inputqueue->arrivaltime <= timer) {
+
             process = deqPcb(&inputqueue);
+
             enqPcb(rrqueue, process);
-        } 
+        }
        
 //     ii. If a process is currently running;
         if (currentprocess && currentprocess->status == PCB_RUNNING) {
