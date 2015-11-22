@@ -168,7 +168,6 @@ int main (int argc, char *argv[])
 //         c. Set it as currently running process;
             currentprocess = process;
 
-            printf("%d\n", currentprocess->status);
         }
        
 //      iv. sleep for quantum;
