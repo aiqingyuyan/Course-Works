@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
 
             process = deqPcb(&inputqueue);
 
-            enqPcb(rrqueue, process);
+            rrqueue = enqPcb(rrqueue, process);
         }
        
 //     ii. If a process is currently running;
@@ -131,7 +131,7 @@ int main (int argc, char *argv[])
 
 //          a. Decrement process remainingcputime;
             currentprocess->remainingcputime--;
-            
+
 //          b. If times up:
             if (!currentprocess->remainingcputime) {
            
@@ -151,10 +151,9 @@ int main (int argc, char *argv[])
                 suspendPcb(currentprocess);
                 
 //             B. Enqueue it back on RR queue;
-                enqPcb(rrqueue, currentprocess);
+                rrqueue = enqPcb(rrqueue, currentprocess);
             }
         }            
-         
         
 //    iii. If no process currently running && RR queue is not empty:
         else if (rrqueue) {
@@ -168,6 +167,8 @@ int main (int argc, char *argv[])
 
 //         c. Set it as currently running process;
             currentprocess = process;
+
+            printf("%d\n", currentprocess->status);
         }
        
 //      iv. sleep for quantum;
