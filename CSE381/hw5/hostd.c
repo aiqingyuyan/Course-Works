@@ -114,86 +114,69 @@ int main (int argc, char *argv[])
 //     (already set to zero above)
         
 //  4. While there's anything in any of the queues or there is a currently running process:
-
-
-
+    while (inputqueue || rrqueue) {
 
 //      i. Unload any pending processes from the input queue:
 //         While (head-of-input-queue.arrival-time <= dispatcher timer)
 //         dequeue process from input queue and enqueue on RR queue;
-
+        while (inputqueue->arrivaltime <= timer) {
+            process = deqPcb(&inputqueue);
+            enqPcb(rrqueue, process);
+        } 
        
-       
-       
-       
-       
-
 //     ii. If a process is currently running;
-
-       
+        if (currentprocess && currentprocess->status == PCB_RUNNING) {
 
 //          a. Decrement process remainingcputime;
-
-            
+            currentprocess->remainingcputime--;
             
 //          b. If times up:
-
+            if (!currentprocess->remainingcputime) {
            
-                
 //             A. Send SIGINT to the process to terminate it;
-
-              
+                terminatePcb(currentprocess);
                 
 //             B. Free up process structure memory
+                free(currentprocess);
 
-                
-                
+                currentprocess = NULL;
+            }   
                 
 //         c. else if other processes are waiting in RR queue:
-
-            
+            else if (rrqueue) {
                 
 //             A. Send SIGTSTP to suspend it;
-
-                
-                
+                suspendPcb(currentprocess);
                 
 //             B. Enqueue it back on RR queue;
-
-               
-               
-               
+                enqPcb(rrqueue, currentprocess);
+            }
+        }            
          
         
 //    iii. If no process currently running && RR queue is not empty:
-
-    
+        else if (rrqueue) {
 
 //         a. Dequeue process from RR queue
-
-          
+            process = deqPcb(&rrqueue);
             
 //         b. If already started but suspended, restart it (send SIGCONT to it)
 //              else start it (fork & exec)
-//         c. Set it as currently running process;
-            
-       
-       
-        
-//      iv. sleep for quantum;
+            startPcb(process);
 
-        
-        
-        
+//         c. Set it as currently running process;
+            currentprocess = process;
+        }
+       
+//      iv. sleep for quantum;
+        sleep(quantum);
             
 //       v. Increment dispatcher timer;
-
-       
+        ++timer;
             
 //      vi. Go back to 4.
-
+    }
   
-        
 //    5. Exit
 
     exit (0);
