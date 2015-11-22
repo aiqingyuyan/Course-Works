@@ -40,6 +40,7 @@ OS Eercises - Homework 5 - HOST dispatcher - Dispatcher Shell
 ********************************************************************/
 
 #include "hostd.h"
+#include "dispatcher.h"
 
 #define VERSION "1.0"
 
@@ -101,56 +102,51 @@ int main (int argc, char *argv[])
 //     (already set to zero above)
         
 //  4. While there's anything in the queue or there is a currently running process:
-
-   
+    while (inputqueue) {
 
 //      i. If a process is currently running;
-
-        
+        if (currentprocess) {
 
 //          a. Decrement process remainingcputime;
-
-        
+            currentprocess->remainingcputime--;
             
 //          b. If times up:
-
-          
+            if (!currentprocess->remainingcputime) {
                 
 //             A. Send SIGINT to the process to terminate it;
-
-               
+               terminatePcb(currentprocess);
                 
-//             B. Free up process structure memory
+//             B. Free up process structure memory 
+               free(currentprocess);
 
-          
-          
+               currentprocess = NULL;
+            }
+         }
         
 //     ii. If no process now currently running &&
 //           dispatcher queue is not empty &&
 //           arrivaltime of process at head of queue is <= dispatcher timer:
-
-    
-
-//          a. Dequeue process and start it (fork & exec)
-//          b. Set it as currently running process;
-            
+         else if (inputqueue->arrivaltime <= timer) {
         
+//          a. Dequeue process and start it (fork & exec)
+            PcbPtr tmp = deqPcb(&inputqueue);
+
+//          b. Set it as currently running process;
+            currentprocess = startPcb(tmp);
+         }
         
 
 //     iii. sleep for one second;
-
-       
+         sleep(1);
             
 //      iv. Increment dispatcher timer;
-
-       
+         ++timer;
             
 //       v. Go back to 4.
-
+    }
    
         
 //    5. Exit
-
     exit (0);
 }    
 
