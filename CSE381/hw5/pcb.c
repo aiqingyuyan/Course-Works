@@ -165,7 +165,7 @@ PcbPtr printPcb(PcbPtr p, FILE * iostream)
 void printPcbHdr(FILE * iostream) 
 {  
 //    fprintf(iostream,"    pid arrive  prior    cpu offset Mbytes     prn    scn   modem   cd  status\n");
-    fprintf(iostream,"    pid arrive  prior    cpu  status\n");
+     fprintf(iostream,"    pid arrive  prior    cpu  status\n");
 
 }
        

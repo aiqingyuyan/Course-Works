@@ -126,18 +126,19 @@ int main (int argc, char *argv[])
 //         priority feedback queue (assigning it the appropriate priority);
        while (inputqueue && inputqueue->arrivaltime <= timer) {
            process = deqPcb(&inputqueue);
-           fbqueue[HIGH_PRIORITY] = enqPcb(fbqueue[HIGH_PRIORITY], process);
+           process->status = PCB_READY;
+           fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
        }
       
 //     ii. If a process is currently running;
        if (currentprocess && currentprocess->status == PCB_RUNNING) {
-     
+        
 //          a. Decrement process remainingcputime;
             currentprocess->remainingcputime--;
             
 //          b. If times up:
             if (!currentprocess->remainingcputime) {
-                
+
 //             A. Send SIGINT to the process to terminate it;
                 terminatePcb(currentprocess);
                 
@@ -145,20 +146,21 @@ int main (int argc, char *argv[])
                 free(currentprocess);
 
                 currentprocess = NULL;
+
             }
                 
-//         c. else if other processes are waiting in feedback queues:
-            else if (fbqueue[currentprocess->priority]) {
-                
+//         c. else if other processes are waiting in any of the feedback queues:
+            else if (CheckQueues(fbqueue) != -1) {
+
 //             A. Send SIGTSTP to suspend it;
                 suspendPcb(currentprocess);
 
 //             B. Reduce the priority of the process (if possible) and enqueue it on
 //                the appropriate feedback queue;
-                if (currentprocess->priority < LOW_PRIORITY) {
+                if (currentprocess->priority < LOW_PRIORITY - 1) {
                     currentprocess->priority++;
                 }
-
+                
                 fbqueue[currentprocess->priority] = enqPcb(fbqueue[currentprocess->priority],
                                                       currentprocess);
             }
@@ -166,11 +168,12 @@ int main (int argc, char *argv[])
         
 //    iii. If no process currently running && feedback queues are not empty:
         else if (CheckQueues(fbqueue) != -1) {
+
             int p = CheckQueues(fbqueue);
 
-//         a. Dequeue process from RR queue
-            process = deqPcb(&fbqueue[p]);
-            
+//         a. Dequeue process from the highest priority feedback queue that is not empty
+            process = deqPcb(fbqueue + p);
+
 //         b. If already started but suspended, restart it (send SIGCONT to it)
 //              else start it (fork & exec)
             startPcb(process);
