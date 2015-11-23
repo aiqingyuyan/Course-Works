@@ -114,7 +114,7 @@ int main (int argc, char *argv[])
 //     (already set to zero above)
         
 //  4. While there's anything in any of the queues or there is a currently running process:
-    while (inputqueue || rrqueue) {
+    while (inputqueue || rrqueue || currentprocess) {
 
 //      i. Unload any pending processes from the input queue:
 //         While (head-of-input-queue.arrival-time <= dispatcher timer)

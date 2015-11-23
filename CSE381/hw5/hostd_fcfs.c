@@ -40,7 +40,6 @@ OS Eercises - Homework 5 - HOST dispatcher - Dispatcher Shell
 ********************************************************************/
 
 #include "hostd.h"
-#include "dispatcher.h"
 
 #define VERSION "1.0"
 
@@ -102,7 +101,7 @@ int main (int argc, char *argv[])
 //     (already set to zero above)
         
 //  4. While there's anything in the queue or there is a currently running process:
-    while (inputqueue) {
+    while (inputqueue || currentprocess) {
 
 //      i. If a process is currently running;
         if (currentprocess) {

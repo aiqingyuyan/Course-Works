@@ -47,6 +47,7 @@
 #define RT_PRIORITY      0
 #define HIGH_PRIORITY    1
 #define LOW_PRIORITY     (N_QUEUES - 1)
+#define N_FB_QUEUES      (LOW_PRIORITY - HIGH_PRIORITY +1)
 
 #define PCB_UNINITIALIZED 0
 #define PCB_INITIALIZED 1
