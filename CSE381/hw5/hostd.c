@@ -138,20 +138,22 @@ int main (int argc, char *argv[])
 //  2. Fill dispatcher queue from dispatch list file;
    
     if (!(inputliststream = fopen(inputfile, "r"))) {
-        SysErrMsg("could not open dispatch list file");
+        SysErrMsg("could not open dispatch list file", inputfile);
         exit(2);
     }
 
 	while (!feof(inputliststream)) {
 		process = createnullPcb();
-		if (fscanf(inputliststream, "%d, %d, %d, %d, %d, %d, %d, %d",
-			 &(process->arrivaltime), &(process->priority),
-			 &(process->remainingcputime), &(process->mbytes),
-			 &(process->req.printers), &(process->req.scanners),
-			 &(process->req.modems), &(process->req.cds)) != 8)) {
+		if (fscanf(inputliststream,"%d, %d, %d, %d, %d, %d, %d, %d",
+             &(process->arrivaltime), &(process->priority),
+             &(process->remainingcputime), &(process->mbytes),
+             &(process->req.printers), &(process->req.scanners),
+             &(process->req.modems), &(process->req.cds)) != 8) {
 			free(process);
 			continue;
 		}
+		process->status = PCB_INITIALIZED;
+        inputqueue = enqPcb(inputqueue, process);
 	}    
 
 //  3. Start dispatcher timer;
@@ -176,7 +178,7 @@ int main (int argc, char *argv[])
 //         enqueue on highest priority feedback queue (assigning it the appropriate
 //         priority);
 
-			while (userjobqueue && memChk(userjobqueue->memoryblock, userjobqueue->mbytes)) {
+			while (userjobqueue && memChkMax(userjobqueue->mbytes) != FALSE) {
 				process = deqPcb(&userjobqueue);
 				process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
 				fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
@@ -195,7 +197,7 @@ int main (int argc, char *argv[])
                 
 //             A. Send SIGINT to the process to terminate it;
 
-               		terminate(currentprocess);
+               		terminatePcb(currentprocess);
 
 //             B. Free memory we have allocated to the process;
 
@@ -207,8 +209,6 @@ int main (int argc, char *argv[])
 
                		currentprocess = NULL;
                 }
-                
-                
                 
 //         c. else if other processes are waiting in feedback queues:
 
