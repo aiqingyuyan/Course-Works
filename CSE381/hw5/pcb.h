@@ -17,10 +17,16 @@
 
   see pcb.c for fuller description of function arguments and returns
 
- ********************************************************************/
+ ********************************************************************
 
+  version: 1.1 Memory Allocation
+  history:
+     v1.0: Original for exercises FCFS, RR, and Feedback
+     v1.1: Add reference to memory block structure
 
-//#include "mab.h"
+ *******************************************************************/
+
+#include "mab.h"
 //#include "rsrc.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +53,7 @@
 #define RT_PRIORITY      0
 #define HIGH_PRIORITY    1
 #define LOW_PRIORITY     (N_QUEUES - 1)
-#define N_FB_QUEUES      (LOW_PRIORITY - HIGH_PRIORITY +1)
+#define N_FB_QUEUES      (LOW_PRIORITY - HIGH_PRIORITY + 1)
 
 #define PCB_UNINITIALIZED 0
 #define PCB_INITIALIZED 1
@@ -73,7 +79,7 @@ struct pcb {
     int priority;
     int remainingcputime;
     int mbytes;
-//    MabPtr memoryblock;
+    MabPtr memoryblock;
     Rsrc req;
     int status;
     struct pcb * next;

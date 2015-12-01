@@ -1,14 +1,12 @@
-# makefile for OS Exercises: homework 5
+# makefile for OS Exercises: Memory Allocation
 #
-#  author:  Dr Hakam W. Alomari - alomarhw@miamioh.edu
-#  date:    Nov 2015
 #
 
 CC=gcc
 CFLAGS= -Wall 
 PROGNAME=hostd
-SOURCE=$(PROGNAME).c pcb.c
-INCLUDE=$(PROGNAME).h pcb.h
+SOURCE=$(PROGNAME).c pcb.c mab.c
+INCLUDE=$(PROGNAME).h pcb.h mab.h
 
 $(PROGNAME): $(SOURCE) $(INCLUDE) makefile process
 	$(CC) $(CFLAGS) $(SOURCE) -o $@
