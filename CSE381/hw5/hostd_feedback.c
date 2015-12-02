@@ -148,7 +148,7 @@ int main (int argc, char *argv[])
                 currentprocess = NULL;
 
             }
-                
+
 //         c. else if other processes are waiting in any of the feedback queues:
             else if (CheckQueues(fbqueue) != -1) {
 
@@ -167,7 +167,7 @@ int main (int argc, char *argv[])
         }
         
 //    iii. If no process currently running && feedback queues are not empty:
-        else if (CheckQueues(fbqueue) != -1) {
+        if ((currentprocess == NULL || currentprocess->status != PCB_RUNNING) && CheckQueues(fbqueue) != -1) {
 
             int p = CheckQueues(fbqueue);
 

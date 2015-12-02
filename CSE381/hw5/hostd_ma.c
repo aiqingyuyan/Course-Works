@@ -143,17 +143,17 @@ int main (int argc, char *argv[])
     }
 
 	while (!feof(inputliststream)) {
-		process = createnullPcb();
-		if (fscanf(inputliststream,"%d, %d, %d, %d, %d, %d, %d, %d",
-             &(process->arrivaltime), &(process->priority),
-             &(process->remainingcputime), &(process->mbytes),
-             &(process->req.printers), &(process->req.scanners),
-             &(process->req.modems), &(process->req.cds)) != 8) {
-			free(process);
-			continue;
-		}
-		process->status = PCB_INITIALIZED;
-        inputqueue = enqPcb(inputqueue, process);
+	    process = createnullPcb();
+		  if (fscanf(inputliststream,"%d, %d, %d, %d, %d, %d, %d, %d",
+               &(process->arrivaltime), &(process->priority),
+               &(process->remainingcputime), &(process->mbytes),
+               &(process->req.printers), &(process->req.scanners),
+               &(process->req.modems), &(process->req.cds)) != 8) {
+			    free(process);
+			    continue;
+		  }
+		  process->status = PCB_INITIALIZED;
+      inputqueue = enqPcb(inputqueue, process);
 	}    
 
 //  3. Start dispatcher timer;
@@ -167,9 +167,9 @@ int main (int argc, char *argv[])
 //         dequeue process from input queue and and enqueue on user
 //         job queue;
 			while (inputqueue && inputqueue->arrivaltime <= timer) {
-				process = deqPcb(&inputqueue);
-				process->status = PCB_READY;
-			 	userjobqueue = enqPcb(userjobqueue, process);
+				  process = deqPcb(&inputqueue);
+				  process->status = PCB_READY;
+			 	  userjobqueue = enqPcb(userjobqueue, process);
 			}
         
 //     ii. Unload pending processes from the user job queue:
@@ -179,27 +179,26 @@ int main (int argc, char *argv[])
 //         priority);
 
 			while (userjobqueue && memChkMax(userjobqueue->mbytes) != FALSE) {
-				process = deqPcb(&userjobqueue);
-				process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
-				fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
+				  process = deqPcb(&userjobqueue);
+				  process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
+				  fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
 				// printf("allocated\n");
 			}
 
 //    iii. If a process is currently running;
 
-        	if (currentprocess && currentprocess->status == PCB_RUNNING) {
+      if (currentprocess && currentprocess->status == PCB_RUNNING) {
 
 //          a. Decrement process remainingcputime;
-        		currentprocess->remainingcputime--;
+        		  currentprocess->remainingcputime--;
             
 //          b. If times up:
 
-        		if (!currentprocess->remainingcputime) {
-        			printf("time is up\n");
+        		  if (!currentprocess->remainingcputime) {
                 
 //             A. Send SIGINT to the process to terminate it;
 
-               		terminatePcb(currentprocess);
+                  terminatePcb(currentprocess);
 
 //             B. Free memory we have allocated to the process;
 
@@ -214,7 +213,7 @@ int main (int argc, char *argv[])
                 
 //         c. else if other processes are waiting in feedback queues:
 
-				else if (CheckQueues(fbqueue) >= 0) {
+				      else if (CheckQueues(fbqueue) >= 0) {
                 
 //             A. Send SIGTSTP to suspend it;
 
@@ -229,14 +228,14 @@ int main (int argc, char *argv[])
 
                		fbqueue[currentprocess->priority] = enqPcb(fbqueue[currentprocess->priority],
                												currentprocess);
-				}
+				       }
                 
-            }  
+        }  
         
 //     iv. If no process currently running && feedback queues are not empty:
 
-       		if (!currentprocess && CheckQueues(fbqueue) >= 0) {
-       
+       	if ((currentprocess == NULL || currentprocess->status != PCB_RUNNING) && CheckQueues(fbqueue) >= 0) {
+       			//printf("enter\n");
 //         a. Dequeue process from RR queue
 
        			process = deqPcb(fbqueue + CheckQueues(fbqueue));
@@ -248,18 +247,18 @@ int main (int argc, char *argv[])
 
 //         c. Set it as currently running process;
             
-            	currentprocess = process;
-            }
+            currentprocess = process;
+        }
         
 //       v. sleep for quantum;
 
-        	sleep(quantum);
+        sleep(quantum);
             
 //      vi. Increment dispatcher timer;
 
-        	++timer;
+        ++timer;
             
-//     vii. Go back to 4.
+//      vii. Go back to 4.
     }
         
 //    5. Exit
