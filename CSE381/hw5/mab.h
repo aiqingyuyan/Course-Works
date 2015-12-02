@@ -36,7 +36,7 @@
 #define TRUE 1
 #endif
 
-enum memAllocAlg { FIRST_FIT, NEXT_FIT, BEST_FIT, WORST_FIT};
+enum memAllocAlg {FIRST_FIT, NEXT_FIT, BEST_FIT, WORST_FIT};
 
 extern enum memAllocAlg MabAlgorithm;
 

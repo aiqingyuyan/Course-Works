@@ -182,6 +182,7 @@ int main (int argc, char *argv[])
 				process = deqPcb(&userjobqueue);
 				process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
 				fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
+				// printf("allocated\n");
 			}
 
 //    iii. If a process is currently running;
@@ -194,6 +195,7 @@ int main (int argc, char *argv[])
 //          b. If times up:
 
         		if (!currentprocess->remainingcputime) {
+        			printf("time is up\n");
                 
 //             A. Send SIGINT to the process to terminate it;
 
@@ -212,7 +214,7 @@ int main (int argc, char *argv[])
                 
 //         c. else if other processes are waiting in feedback queues:
 
-				else if (CheckQueues(fbqueue) >= 0) {           
+				else if (CheckQueues(fbqueue) >= 0) {
                 
 //             A. Send SIGTSTP to suspend it;
 
@@ -233,16 +235,16 @@ int main (int argc, char *argv[])
         
 //     iv. If no process currently running && feedback queues are not empty:
 
-       		else if (CheckQueues(fbqueue) >= 0) {
+       		if (!currentprocess && CheckQueues(fbqueue) >= 0) {
        
 //         a. Dequeue process from RR queue
 
-       			int p = CheckQueues(fbqueue);    
+       			process = deqPcb(fbqueue + CheckQueues(fbqueue));
             
 //         b. If already started but suspended, restart it (send SIGCONT to it)
 //              else start it (fork & exec)
 
-       			process = deqPcb(fbqueue + p);
+       			startPcb(process);
 
 //         c. Set it as currently running process;
             

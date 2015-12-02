@@ -107,7 +107,7 @@ MabPtr memAlloc(MabPtr arena, int size)
         } while (m != next_mab);
         return NULL;
 
-    } else if (MabAlgorithm == BEST_FIT) { 
+    } else if (MabAlgorithm == BEST_FIT) {
 
         m = NULL;
         while (arena) {
