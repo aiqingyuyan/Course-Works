@@ -43,8 +43,9 @@
 
 ********************************************************************
 
+  version: 1.0 (exercise MA)
   history:
-     v1.0: Original for exercise Memory Allocation
+     v1.0: Original for exercise MA
 
 *******************************************************************/
 
@@ -107,7 +108,7 @@ MabPtr memAlloc(MabPtr arena, int size)
         } while (m != next_mab);
         return NULL;
 
-    } else if (MabAlgorithm == BEST_FIT) {
+    } else if (MabAlgorithm == BEST_FIT) { 
 
         m = NULL;
         while (arena) {

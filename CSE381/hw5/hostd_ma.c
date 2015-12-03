@@ -142,128 +142,128 @@ int main (int argc, char *argv[])
         exit(2);
     }
 
-	while (!feof(inputliststream)) {
-	    process = createnullPcb();
-		  if (fscanf(inputliststream,"%d, %d, %d, %d, %d, %d, %d, %d",
-               &(process->arrivaltime), &(process->priority),
-               &(process->remainingcputime), &(process->mbytes),
-               &(process->req.printers), &(process->req.scanners),
-               &(process->req.modems), &(process->req.cds)) != 8) {
-			    free(process);
-			    continue;
-		  }
-		  process->status = PCB_INITIALIZED;
-      inputqueue = enqPcb(inputqueue, process);
-	}    
+  	while (!feof(inputliststream)) {
+  	    process = createnullPcb();
+  		  if (fscanf(inputliststream,"%d, %d, %d, %d, %d, %d, %d, %d",
+                 &(process->arrivaltime), &(process->priority),
+                 &(process->remainingcputime), &(process->mbytes),
+                 &(process->req.printers), &(process->req.scanners),
+                 &(process->req.modems), &(process->req.cds)) != 8) {
+  			    free(process);
+  			    continue;
+  		  }
+  		  process->status = PCB_INITIALIZED;
+        inputqueue = enqPcb(inputqueue, process);
+  	}    
 
-//  3. Start dispatcher timer;
-//     (already set to zero above)
-        
-//  4. While there's anything in any of the queues or there is a currently running process:
-	while (inputqueue || CheckQueues(fbqueue) >= 0 || currentprocess) {
+  //  3. Start dispatcher timer;
+  //     (already set to zero above)
+          
+  //  4. While there's anything in any of the queues or there is a currently running process:
+  	while (inputqueue || CheckQueues(fbqueue) >= 0 || currentprocess) {
 
-//      i. Unload any pending processes from the input queue:
-//         While (head-of-input-queue.arrival-time <= dispatcher timer)
-//         dequeue process from input queue and and enqueue on user
-//         job queue;
-			while (inputqueue && inputqueue->arrivaltime <= timer) {
-				  process = deqPcb(&inputqueue);
-				  process->status = PCB_READY;
-			 	  userjobqueue = enqPcb(userjobqueue, process);
-			}
-        
-//     ii. Unload pending processes from the user job queue:
-//         While (head-of-user-job-queue.mbytes can be allocated)
-//         dequeue process from user job queue, allocate memory to the process and
-//         enqueue on highest priority feedback queue (assigning it the appropriate
-//         priority);
+  //      i. Unload any pending processes from the input queue:
+  //         While (head-of-input-queue.arrival-time <= dispatcher timer)
+  //         dequeue process from input queue and and enqueue on user
+  //         job queue;
+  			while (inputqueue && inputqueue->arrivaltime <= timer) {
+  				  process = deqPcb(&inputqueue);
+  				  process->status = PCB_READY;
+  			 	  userjobqueue = enqPcb(userjobqueue, process);
+  			}
+          
+  //     ii. Unload pending processes from the user job queue:
+  //         While (head-of-user-job-queue.mbytes can be allocated)
+  //         dequeue process from user job queue, allocate memory to the process and
+  //         enqueue on highest priority feedback queue (assigning it the appropriate
+  //         priority);
 
-			while (userjobqueue && memChkMax(userjobqueue->mbytes) != FALSE) {
-				  process = deqPcb(&userjobqueue);
-				  process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
-				  fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
-				// printf("allocated\n");
-			}
+  			while (userjobqueue && memChkMax(userjobqueue->mbytes) != FALSE) {
+  				  process = deqPcb(&userjobqueue);
+  				  process->memoryblock = memAlloc(process->memoryblock, process->mbytes);
+  				  fbqueue[HIGH_PRIORITY - 1] = enqPcb(fbqueue[HIGH_PRIORITY - 1], process);
+  				// printf("allocated\n");
+  			}
 
-//    iii. If a process is currently running;
+  //    iii. If a process is currently running;
 
-      if (currentprocess && currentprocess->status == PCB_RUNNING) {
+        if (currentprocess && currentprocess->status == PCB_RUNNING) {
 
-//          a. Decrement process remainingcputime;
-        		  currentprocess->remainingcputime--;
-            
-//          b. If times up:
+  //          a. Decrement process remainingcputime;
+          		  currentprocess->remainingcputime--;
+              
+  //          b. If times up:
 
-        		  if (!currentprocess->remainingcputime) {
-                
-//             A. Send SIGINT to the process to terminate it;
+          		  if (!currentprocess->remainingcputime) {
+                  
+  //             A. Send SIGINT to the process to terminate it;
 
-                  terminatePcb(currentprocess);
+                    terminatePcb(currentprocess);
 
-//             B. Free memory we have allocated to the process;
+  //             B. Free memory we have allocated to the process;
 
-               		memFree(currentprocess->memoryblock);
-                
-//             C. Free up process structure memory
+                 		memFree(currentprocess->memoryblock);
+                  
+  //             C. Free up process structure memory
 
-               		free(currentprocess);
+                 		free(currentprocess);
 
-               		currentprocess = NULL;
-                }
-                
-//         c. else if other processes are waiting in feedback queues:
+                 		currentprocess = NULL;
+                  }
+                  
+  //         c. else if other processes are waiting in feedback queues:
 
-				      else if (CheckQueues(fbqueue) >= 0) {
-                
-//             A. Send SIGTSTP to suspend it;
+  				      else if (CheckQueues(fbqueue) >= 0) {
+                  
+  //             A. Send SIGTSTP to suspend it;
 
-               		suspendPcb(currentprocess);
-               
-//             B. Reduce the priority of the process (if possible) and enqueue it on
-//                the appropriate feedback queue;;
+                 		suspendPcb(currentprocess);
+                 
+  //             B. Reduce the priority of the process (if possible) and enqueue it on
+  //                the appropriate feedback queue;;
 
-               		if (currentprocess->priority < LOW_PRIORITY - 1) {
-               			currentprocess->priority++;
-               		}
+                 		if (currentprocess->priority < LOW_PRIORITY - 1) {
+                 		    currentprocess->priority++;
+                 		}
 
-               		fbqueue[currentprocess->priority] = enqPcb(fbqueue[currentprocess->priority],
-               												currentprocess);
-				       }
-                
-        }  
-        
-//     iv. If no process currently running && feedback queues are not empty:
+                 		fbqueue[currentprocess->priority] = enqPcb(fbqueue[currentprocess->priority],
+                 												currentprocess);
+  				       }
+                  
+          }  
+          
+  //     iv. If no process currently running && feedback queues are not empty:
 
-       	if ((currentprocess == NULL || currentprocess->status != PCB_RUNNING) && CheckQueues(fbqueue) >= 0) {
-       			//printf("enter\n");
-//         a. Dequeue process from RR queue
+         	if ((currentprocess == NULL || currentprocess->status != PCB_RUNNING) && CheckQueues(fbqueue) >= 0) {
+         			//printf("enter\n");
+  //         a. Dequeue process from RR queue
 
-       			process = deqPcb(fbqueue + CheckQueues(fbqueue));
-            
-//         b. If already started but suspended, restart it (send SIGCONT to it)
-//              else start it (fork & exec)
+         			process = deqPcb(fbqueue + CheckQueues(fbqueue));
+              
+  //         b. If already started but suspended, restart it (send SIGCONT to it)
+  //              else start it (fork & exec)
 
-       			startPcb(process);
+         			startPcb(process);
 
-//         c. Set it as currently running process;
-            
-            currentprocess = process;
-        }
-        
-//       v. sleep for quantum;
+  //         c. Set it as currently running process;
+              
+              currentprocess = process;
+          }
+          
+  //       v. sleep for quantum;
 
-        sleep(quantum);
-            
-//      vi. Increment dispatcher timer;
+          sleep(quantum);
+              
+  //      vi. Increment dispatcher timer;
 
-        ++timer;
-            
-//      vii. Go back to 4.
-    }
+          ++timer;
+              
+  //      vii. Go back to 4.
+      }
         
 //    5. Exit
 
-    exit (0);
+      exit (0);
 }    
 
 

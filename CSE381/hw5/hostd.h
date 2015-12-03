@@ -6,7 +6,14 @@
  
    include file for HOST dispatcher
 
- *******************************************************************/
+ *******************************************************************
+
+  history:
+     v1.0: original for previous exercises FCFS, RR, & Feedback
+     v1.1: add memory allocation 
+     v1.2: add resource allocation
+
+ ******************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +24,8 @@
 #include <unistd.h>
 
 #include "pcb.h"
+#include "mab.h"
+#include "rsrc.h"
 
 #ifndef FALSE
 #define FALSE 0

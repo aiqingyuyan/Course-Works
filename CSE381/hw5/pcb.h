@@ -19,15 +19,14 @@
 
  ********************************************************************
 
-  version: 1.1 Memory Allocation
   history:
-     v1.0: Original for exercises FCFS, RR, and Feedback
-     v1.1: Add reference to memory block structure
-
+     v1.0: Original for exercises FCFS, RR, & Feedback
+     v1.1: Add reference to memory block structure for exercise MA
+     v1.2: Add resource allocation
  *******************************************************************/
 
 #include "mab.h"
-//#include "rsrc.h"
+#include "rsrc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -61,16 +60,6 @@
 #define PCB_RUNNING 3
 #define PCB_SUSPENDED 4
 #define PCB_TERMINATED 5
-
-struct rsrc {
-    int printers;
-    int scanners;
-    int modems;
-    int cds;
-};
-
-typedef struct rsrc Rsrc;
-typedef Rsrc * RsrcPtr;
 
 struct pcb {
     pid_t pid;

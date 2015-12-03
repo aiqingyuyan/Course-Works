@@ -20,8 +20,9 @@
 
 ********************************************************************
 
+  version: 1.0 (exercise MA)
   history:
-     v1.0: Original for exercise Memory Allocation
+     v1.0: Original for exercise MA
 
 *******************************************************************/
 
@@ -36,7 +37,7 @@
 #define TRUE 1
 #endif
 
-enum memAllocAlg {FIRST_FIT, NEXT_FIT, BEST_FIT, WORST_FIT};
+enum memAllocAlg { FIRST_FIT, NEXT_FIT, BEST_FIT, WORST_FIT};
 
 extern enum memAllocAlg MabAlgorithm;
 

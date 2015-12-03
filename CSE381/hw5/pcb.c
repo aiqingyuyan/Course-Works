@@ -1,6 +1,6 @@
 /*******************************************************************
 
-  OS Eercises - Homework 5 - HOST dispatcher
+  OS Exercises - Homework 5 - HOST dispatcher
  
   pcb - process control block functions for HOST dispatcher
 
@@ -47,12 +47,10 @@
 
  ********************************************************************
 
-   version: 1.1 (exercise 10)
-   date:    December 2003
-   author:  Dr Ian G Graham, ian.graham@griffith.edu.au
    history:
-      v1.0: Original for exercises FCFS, RR, and Feedback 
-      v1.1: Add reference to memory block structure 
+      v1.0: Original for exercises FCFS, RR, & Feedback 
+      v1.1: Add reference to memory block structure for exercise MA
+      v1.2: Add resource allocation for this exercise
 
  *******************************************************************/
 
@@ -133,11 +131,11 @@ PcbPtr terminatePcb(PcbPtr p)
  
 PcbPtr printPcb(PcbPtr p, FILE * iostream)
 {
-    fprintf(iostream, "%7d%7d%7d%7d%7d%7d  ",
+    fprintf(iostream, "%7d%7d%7d%7d%7d%7d%7d%7d%7d%7d  ",
         (int) p->pid, p->arrivaltime, p->priority,
             p->remainingcputime,
-            p->memoryblock->offset, p->mbytes);
-//        p->req.printers, p->req.scanners,p->req.modems,p->req.cds);
+            p->memoryblock->offset, p->mbytes,
+            p->req.printers, p->req.scanners,p->req.modems,p->req.cds);
     switch (p->status) {
         case PCB_UNINITIALIZED:
             fprintf(iostream, "UNINITIALIZED");
@@ -173,9 +171,7 @@ PcbPtr printPcb(PcbPtr p, FILE * iostream)
  
 void printPcbHdr(FILE * iostream) 
 {  
-//    fprintf(iostream,"    pid arrive  prior    cpu offset Mbytes     prn    scn   modem   cd  status\n");
-    fprintf(iostream,"    pid arrive  prior    cpu offset Mbytes  status\n");
-
+    fprintf(iostream,"    pid arrive  prior    cpu offset Mbytes     prn    scn   modem   cd  status\n");
 }
        
 /*******************************************************

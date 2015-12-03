@@ -1,5 +1,5 @@
 /* 
-  OS Exercises - homework 5
+  OS Exercises - Homework 5
 
   sigtrap - report system signals applied to process
   
@@ -23,7 +23,11 @@
   output is to stdout (set in #define), reset to BLACK and NORMAL
   and flushed after every printf.
       
- ********************************************************************/
+ ********************************************************************
+   version: 1.0
+   history: derived from original simple sleep process (HW# 2)
+
+ *******************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +53,7 @@ void        PrintUsage(char*);   // for error exit & info
 char       *StripPath(char*);    // strip path from filename
 
 #define DEFAULT_TIME 20
-#define DEFAULT_OP stdout
+#define DEFAULT_OP   stdout
 #define DEFAULT_NAME "sigtrap"
 
 #define BLACK   "\033[30m"       // foreground colours
@@ -87,7 +91,7 @@ char * colours [] = { BLACK ON_WHITE, CYAN ON_RED, GREEN ON_MAGENTA,
 #define N_COLOUR 32
 
 char * colour;                        // choice of colour for this process
-// FILE * output = DEFAULT_OP;
+FILE * output = DEFAULT_OP;
 
 static int signal_SIGINT = FALSE;     // flags set by signal handler
 static int signal_SIGQUIT = FALSE;    // (all response done in main process   
@@ -101,7 +105,6 @@ static int signal_SIGTSTP = FALSE;
 
 int main(int argc, char *argv[])
 {
-    FILE * output = DEFAULT_OP;
     pid_t pid = getpid();             // get process id 
     int i, cycle, rc;    
     long clktck = sysconf(_SC_CLK_TCK);
