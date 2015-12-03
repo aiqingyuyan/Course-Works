@@ -91,7 +91,6 @@ char * colours [] = { BLACK ON_WHITE, CYAN ON_RED, GREEN ON_MAGENTA,
 #define N_COLOUR 32
 
 char * colour;                        // choice of colour for this process
-FILE * output = DEFAULT_OP;
 
 static int signal_SIGINT = FALSE;     // flags set by signal handler
 static int signal_SIGQUIT = FALSE;    // (all response done in main process   
@@ -105,6 +104,7 @@ static int signal_SIGTSTP = FALSE;
 
 int main(int argc, char *argv[])
 {
+    FILE * output = DEFAULT_OP;
     pid_t pid = getpid();             // get process id 
     int i, cycle, rc;    
     long clktck = sysconf(_SC_CLK_TCK);

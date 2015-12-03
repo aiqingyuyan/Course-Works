@@ -223,10 +223,10 @@ int main (int argc, char *argv[])
 
 //          c. allocate i/o resources to process
 
-            rsrcAlloc(&(process->req), {
-                            process->printers, process->scanners,
-                            process->modems, process->cds
-                      });
+            Rsrc tmp = { process->req.printers, process->req.scanners,
+                         process->req.modems, process->req.cds };
+
+            rsrcAlloc(&(process->req), tmp);
 						
             // set pcb ready
             // process->status = PCB_READY;
@@ -255,7 +255,10 @@ int main (int argc, char *argv[])
                 
                 memFree(currentprocess->memoryblock);
 
-                rsrcFree(&(currentprocess->req));
+                Rsrc tmp = { currentprocess->req.printers, currentprocess->req.scanners,
+                             currentprocess->req.modems, currentprocess->req.cds };
+
+                rsrcFree(&(currentprocess->req), tmp);
                 
 //              C. Free up process structure memory
 
