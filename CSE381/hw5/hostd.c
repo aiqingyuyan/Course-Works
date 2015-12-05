@@ -186,12 +186,15 @@ int main (int argc, char *argv[])
 //      i. Unload any pending processes from the input queue:
 //         While (head-of-input-queue.arrival-time <= dispatcher timer)
 //         dequeue process from input queue and and enqueue on either
+
         while (inputqueue && inputqueue->arrivaltime <= timer) {
         
             // dequeue process
+
             process = deqPcb(&inputqueue);
 
             // set pcb ready
+
             process->status = PCB_READY;
 
 //          a. Real-time queue so check out parameters before enqueueing
@@ -270,9 +273,11 @@ int main (int argc, char *argv[])
 		    rsrcAlloc(&resources,process->req);
 		    
             // set pcb ready
+
             process->status = PCB_READY;
 
 //          d. enqueue on appropriate feedback queue
+
             dispatcherqueues[process->priority] = enqPcb(dispatcherqueues[process->priority], process);
         }   
 
@@ -293,6 +298,7 @@ int main (int argc, char *argv[])
                 terminatePcb(currentprocess);
 
 //              B. Free memory and resources we have allocated to the process;
+
                 if (currentprocess->priority != RT_PRIORITY || !rtmemory) {
 			        memFree(currentprocess->memoryblock);
 			        rsrcFree(&resources,currentprocess->req);
@@ -336,7 +342,8 @@ int main (int argc, char *argv[])
 
 //          a. Dequeue process from RR queue
 
-		    currentprocess = deqPcb(&dispatcherqueues[i]);            
+		    currentprocess = deqPcb(&dispatcherqueues[i]); 
+                       
 //          b. If already started but suspended, restart it (send SIGCONT to it)
 //             else start it (fork & exec)
 
